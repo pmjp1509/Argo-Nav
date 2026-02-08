@@ -1,0 +1,111 @@
+# =========================
+# Environment & Secrets
+# =========================
+.env
+.env.*
+*.env
+*.key
+*.pem
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+
+# Jupyter / Colab
+.ipynb_checkpoints/
+*.ipynb
+
+# =========================
+# FastAPI / Uvicorn
+# =========================
+*.log
+logs/
+uvicorn.log
+
+# =========================
+# Data / Scientific Files
+# =========================
+data/
+datasets/
+*.nc
+*.netcdf
+*.parquet
+*.csv
+*.h5
+*.zarr
+
+# Temporary files
+tmp/
+temp/
+.cache/
+
+# =========================
+# Supabase / DB
+# =========================
+.pgpass
+.pg_service.conf
+
+# =========================
+# Node / React / Vite
+# =========================
+node_modules/
+dist/
+build/
+.cache/
+.vite/
+.eslintcache
+
+# =========================
+# IDE / Editors
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Testing / Coverage
+# =========================
+.coverage
+htmlcov/
+.pytest_cache/
+
+# =========================
+# Model / AI Artifacts
+# =========================
+models/
+checkpoints/
+*.onnx
+*.pt
+*.bin
+
+# =========================
+# Misc
+# =========================
+*.zip
+*.tar.gz
+*.rar

@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+psycopg2-binary
+sentence-transformers
+pyarrow
+pydantic
+pydantic-settings
+python-dotenv
+pandas
+plotly
+premsql
+langchain
+transformers
+torch
+huggingface-hub
+ollama
