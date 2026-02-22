@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import MapView from '../components/mapview';
 import Chatbot from '../components/chatbot';
+import Navbar from '../components/navbar';
 import { getFloats } from '../services/floats';
 import type { Float } from '../services/floats';
 
@@ -8,6 +9,7 @@ const Dashboard = () => {
   const [floats, setFloats] = useState<Float[]>([]);
   const [loading, setLoading] = useState(true);
   const [isChatMaximized, setIsChatMaximized] = useState(false);
+  const [highlightedFloatIds, setHighlightedFloatIds] = useState<string[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -25,39 +27,45 @@ const Dashboard = () => {
 
   if (isChatMaximized) {
     return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <Chatbot isMaximized={true} onMaximizeChange={setIsChatMaximized} />
+      <div className="h-screen flex flex-col">
+        <Navbar />
+        <Chatbot isMaximized onMaximizeChange={setIsChatMaximized} onHighlightFloats={setHighlightedFloatIds} />
       </div>
     );
   }
 
   return (
-    <div className="dashboard-container" style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'sans-serif' }}>
-      
-      {/* Top Header */}
-      <header style={{ padding: '1rem', background: '#1e293b', color: 'white' }}>
-        <h1>Argo Float Monitor</h1>
-      </header>
+    <div className="dashboard-container flex flex-col h-screen overflow-hidden font-sans">
+      <Navbar />
 
-      <main style={{ display: 'flex', flex: 1, gap: 0 }}>
-        
-        {/* Left Section: Stats + Map */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          {/* Side Stats Panel */}
-          <aside style={{ width: '100%', borderRight: '1px solid #ddd', padding: '1rem', background: '#f9fafb', borderBottom: '1px solid #ddd' }}>
-            <h3>Statistics</h3>
-            <p><strong>Total Floats:</strong> {loading ? '...' : floats.length}</p>
+      <main className="flex-1 flex flex-row min-h-0">
+        <div className="flex-1 flex flex-col min-w-0">
+          <aside className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex-shrink-0">
+            <p className="m-0 text-sm text-slate-700">
+              <strong>Total Floats:</strong> {loading ? '...' : floats.length}
+              {highlightedFloatIds.length > 0 && (
+                <span className="ml-4 text-amber-600">
+                  • {highlightedFloatIds.length} in result
+                </span>
+              )}
+            </p>
           </aside>
 
-          {/* Map Section */}
-          <section style={{ flex: 1, position: 'relative' }}>
-            <MapView floats={floats} loading={loading} />
+          <section className="flex-1 min-h-0 relative">
+            <MapView
+              floats={floats}
+              loading={loading}
+              highlightedFloatIds={highlightedFloatIds}
+            />
           </section>
         </div>
 
-        {/* Right Section: Chatbot */}
-        <div style={{ width: '35%', minWidth: '300px', display: 'flex', flexDirection: 'column', borderLeft: '1px solid #ddd' }}>
-          <Chatbot isMaximized={false} onMaximizeChange={setIsChatMaximized} />
+        <div className="w-[clamp(300px,35%,480px)] min-w-0 flex flex-col border-l border-slate-200">
+          <Chatbot
+            isMaximized={false}
+            onMaximizeChange={setIsChatMaximized}
+            onHighlightFloats={setHighlightedFloatIds}
+          />
         </div>
       </main>
     </div>

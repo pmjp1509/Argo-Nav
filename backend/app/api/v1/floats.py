@@ -15,5 +15,5 @@ def list_floats():
         rows = execute_sql(sql)
         return rows
     except Exception as e:
-        # Fallback mock data for testing when DB is unavailable
         print(f"Error fetching floats: {e}")
+        return []

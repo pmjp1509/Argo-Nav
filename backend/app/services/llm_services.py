@@ -1,5 +1,21 @@
 from app.llm.client import call_llm
-from app.llm.prompts import argo_scientific_summary_prompt
+from app.llm.prompts import argo_scientific_summary_prompt, query_refinement_prompt
+
+
+def refine_user_query(user_query: str) -> str:
+    """
+    Refine user query: fix spelling/grammar and clarify for Argo context.
+    Falls back to original if LLM fails.
+    """
+    if not (user_query or "").strip():
+        return user_query or ""
+    try:
+        prompt = query_refinement_prompt(user_query.strip())
+        refined = call_llm(prompt, temperature=0.1).strip().strip('"')
+        return refined if refined else user_query
+    except Exception:
+        return user_query
+
 
 def generate_llm_explanation(
     user_query: str,

@@ -12,7 +12,7 @@ export const getFloats = async (): Promise<Float[]> => {
     const data = await response.json();
     
     // Map API response to Float interface
-    return data.map((item: any) => ({
+    return data.map((item: { float_id: string; latitude: number; longitude: number }) => ({
       id: item.float_id,
       latitude: item.latitude,
       longitude: item.longitude
