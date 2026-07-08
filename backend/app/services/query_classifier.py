@@ -1,5 +1,3 @@
-# app/services/query_classifier.py
-
 def is_depth_query(query: str) -> bool:
     """
     Detect whether query requires depth-level computation

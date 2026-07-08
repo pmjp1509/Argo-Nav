@@ -1,0 +1,12 @@
+# ETL-only dependencies (in addition to the backend runtime).
+# Install:  pip install -r etl/requirements-etl.txt
+xarray
+netCDF4
+numpy
+pandas
+pyarrow
+psycopg2-binary
+pgvector
+python-dotenv
+sentence-transformers
+supabase        # only needed when PARQUET_BACKEND=supabase

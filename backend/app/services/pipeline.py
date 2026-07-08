@@ -1,54 +1,57 @@
-from app.services.embeddings import embed_query
-from app.services.vector_search import search_vectors
-from app.services.text_to_sql import text_to_sql
-from app.services.sql_executor import execute_sql
-from app.services.llm_services import generate_llm_explanation, refine_user_query
-from app.services.parquet_reader import (
-    load_profiles,
-    apply_qc,
-    compute_stats,
-    compute_stats_from_rows,
-)
-from app.services.query_classifier import is_depth_query
+"""Request pipeline — replaced to drive the agent (orchestrator -> synthesizer).
 
-async def run_pipeline(query: str):
-    refined_query = refine_user_query(query)
-    embedding = embed_query(refined_query)
-    matches = search_vectors(embedding)
-    context = "\n".join(
-        f"{m[0]}-{m[1]}: {m[2]}" for m in matches
-    )
-    sql = text_to_sql(query, context)
-    rows = execute_sql(sql)
+Kept the `run_pipeline(query)` entry point so the existing /ask and /query routes
+work unchanged. The agent is synchronous (blocking LLM/DB I/O) so we run it in a
+thread to avoid blocking the event loop.
+"""
+from __future__ import annotations
 
-    if is_depth_query(query):
-        profile_dfs = load_profiles(rows)
-        profile_dfs = apply_qc(profile_dfs)
-        stats = compute_stats(profile_dfs)
-        if stats.get("total_rows", 0) == 0 and rows:
-            stats = compute_stats_from_rows(rows)
-    else:
-        stats = compute_stats_from_rows(rows)
+import asyncio
+import logging
+import time
 
-    float_ids = stats.get("float_ids", [])
-    if not float_ids and rows:
-        seen = set()
-        for r in rows:
-            fid = r.get("float_id") if isinstance(r, dict) else (r[0] if r else None)
-            if fid is not None and fid not in seen:
-                seen.add(fid)
-                float_ids.append(str(fid))
-        stats["float_ids"] = float_ids
+from app.agents.orchestrator import run_agent
+from app.agents.synthesizer import synthesize
+from app.core.config import settings
+from app.core.query_log import log_query
+from app.models.contracts import AgentResponse
 
-    explanation = generate_llm_explanation(
-        user_query=query,
-        stats=stats
-    )
+log = logging.getLogger(__name__)
 
-    return {
-        "sql": sql,
-        "context": explanation,
-        "data_preview": stats,
-        "refined_query": refined_query,
-        "float_ids": float_ids,
-    }
+
+def _friendly_error(exc: Exception) -> tuple[str, str]:
+    """Map any internal exception to (error_code, user-safe message).
+    Never leaks provider payloads, tool names, SQL, or stack traces."""
+    s = str(exc).lower()
+    if any(k in s for k in ("rate limit", "tokens per day", "tpd", "quota", "429", "exhaust", "credit", "billing", "resource_exhausted")):
+        return "credits", "You've reached the free AI usage limit for now. Please try again later."
+    if any(k in s for k in ("timed out", "timeout", "connection", "network", "unreachable", "failed to establish")):
+        return "network", "Unable to reach the AI service. Please check your connection and try again."
+    if any(k in s for k in ("503", "502", "500", "unavailable", "internal server")):
+        return "unavailable", "The AI service is temporarily unavailable. Please try again shortly."
+    return "unknown", "Something went wrong while answering. Please try again."
+
+
+async def run_pipeline(query: str, user_id: str | None = None) -> AgentResponse:
+    return await asyncio.to_thread(_run_sync, query, user_id)
+
+
+def _run_sync(query: str, user_id: str | None) -> AgentResponse:
+    t0 = time.time()
+    try:
+        run = run_agent(query)
+        resp = synthesize(run)
+    except Exception as exc:  # noqa: BLE001
+        log.exception("pipeline failed")            # full detail stays in server logs
+        latency = int((time.time() - t0) * 1000)
+        code, friendly = _friendly_error(exc)
+        log_query(nl_query=query, status="error", error=str(exc)[:500], latency_ms=latency,
+                  model=settings.LLM_PROVIDER, user_id=user_id)
+        return AgentResponse(context=friendly, confidence=0.0, error_code=code)
+
+    latency = int((time.time() - t0) * 1000)
+    row_count = resp.data_preview.get("row_count") if isinstance(resp.data_preview, dict) else None
+    log_query(nl_query=query, sql=resp.sql, row_count=row_count,
+              status="ok" if not resp.warnings else "partial", latency_ms=latency,
+              tools_used=resp.tools_used or None, model=settings.LLM_PROVIDER, user_id=user_id)
+    return resp

@@ -1,0 +1,10 @@
+export { MapPage } from './MapPage';
+export { AssistantPage } from './AssistantPage';
+export { ExplorerPage } from './ExplorerPage';
+export { FloatDetailsPage } from './FloatDetailsPage';
+export { AnalyticsPage } from './AnalyticsPage';
+export { KnowledgePage } from './KnowledgePage';
+export { SqlPage } from './SqlPage';
+export { DashboardPage } from './DashboardPage';
+export { MonitorPage } from './MonitorPage';
+export { SettingsPage } from './SettingsPage';

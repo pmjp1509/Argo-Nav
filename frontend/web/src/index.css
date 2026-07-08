@@ -1,0 +1,107 @@
+@import 'tailwindcss';
+
+/* Map CSS variables to Tailwind color/utility tokens (runtime-themeable). */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+  --color-danger: hsl(var(--danger));
+  --color-ring: hsl(var(--ring));
+
+  --radius-lg: 0.9rem;
+  --radius-md: 0.65rem;
+  --radius-sm: 0.4rem;
+
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+/* Light theme (default :root) */
+:root {
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --muted: 210 40% 94%;
+  --muted-foreground: 215 16% 42%;
+  --border: 214 32% 88%;
+  --input: 214 32% 86%;
+  --primary: 199 89% 44%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 190 95% 40%;
+  --accent-foreground: 222 47% 11%;
+  --success: 152 62% 40%;
+  --warning: 38 92% 50%;
+  --danger: 0 72% 51%;
+  --ring: 199 89% 48%;
+}
+
+/* Dark theme (default for this app) */
+.dark {
+  --background: 222 47% 4%;
+  --foreground: 210 40% 96%;
+  --card: 222 40% 7%;
+  --card-foreground: 210 40% 96%;
+  --popover: 222 44% 6%;
+  --popover-foreground: 210 40% 96%;
+  --muted: 217 33% 13%;
+  --muted-foreground: 215 20% 62%;
+  --border: 217 30% 16%;
+  --input: 217 30% 18%;
+  --primary: 199 89% 50%;
+  --primary-foreground: 222 47% 6%;
+  --accent: 190 95% 52%;
+  --accent-foreground: 222 47% 6%;
+  --success: 152 62% 46%;
+  --warning: 38 92% 55%;
+  --danger: 0 72% 58%;
+  --ring: 199 89% 54%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Subtle scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}

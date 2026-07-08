@@ -1,5 +1,3 @@
-# app/services/parquet_reader.py
-
 import os
 import tempfile
 import psycopg2
