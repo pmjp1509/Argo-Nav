@@ -1,3 +1,6 @@
+import os
+import re
+
 from pydantic_settings import BaseSettings
 
 
@@ -44,8 +47,26 @@ class Settings(BaseSettings):
     PARQUET_BACKEND: str = "supabase"        # local | supabase
     PARQUET_LOCAL_DIR: str = "./data/parquet"
 
+    def __init__(self, **values):
+        super().__init__(**values)
+        for field_name in self.__class__.model_fields:
+            value = getattr(self, field_name, None)
+            if isinstance(value, str):
+                setattr(self, field_name, self._resolve_value(value))
+
+    @staticmethod
+    def _resolve_value(value: str) -> str:
+        if not isinstance(value, str):
+            return value
+
+        def replace(match: re.Match[str]) -> str:
+            env_name = match.group(1)
+            return os.getenv(env_name, match.group(0))
+
+        return re.sub(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}", replace, value)
+
     def readonly_url(self) -> str:
-        return self.DATABASE_URL_READONLY or self.DATABASE_URL
+        return self._resolve_value(self.DATABASE_URL_READONLY or self.DATABASE_URL)
 
     def cors_origins(self) -> list[str]:
         defaults = [

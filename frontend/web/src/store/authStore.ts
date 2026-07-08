@@ -48,11 +48,16 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signInWithGoogle: async () => {
     if (!supabase) throw new Error('Authentication is not configured.');
+    const redirectTo =
+      (import.meta.env.VITE_FRONTEND_ORIGIN as string | undefined)?.trim() ||
+      (import.meta.env.VITE_APP_URL as string | undefined)?.trim() ||
+      window.location.origin;
+
     // Redirects to Google, then back to the app root; supabase-js parses the
     // returned session automatically (detectSessionInUrl) and persists it.
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo },
     });
     if (error) throw error;
   },
