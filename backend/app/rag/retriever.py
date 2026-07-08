@@ -58,16 +58,20 @@ def _reciprocal_rank_fusion(ranked_lists: list[list[Retrieved]], k: int = 60) ->
 # ---------------------------------------------------------------------------
 def _hybrid(query: str, *, table: str, text_col: str, extra_cols: tuple[str, ...],
             title_expr: str, k: int, candidate_k: int, rerank: bool) -> list[Retrieved]:
-    qvec = _vec_literal(embeddings.embed_query(query))
     cols = f"id, {title_expr} AS title, {text_col} AS content" + \
            ("".join(f", {c}" for c in extra_cols))
 
     with get_conn() as conn, conn.cursor() as cur:
-        # dense (cosine distance operator <=>); cast the literal to vector
-        cur.execute(
-            f"SELECT {cols} FROM argo.{table} WHERE embedding IS NOT NULL "
-            f"ORDER BY embedding <=> %s::vector LIMIT %s", (qvec, candidate_k))
-        dense = _rows_to_retrieved(cur, extra_cols)
+        # Dense retrieval needs the embedding model (PyTorch). On tiny hosts set
+        # RAG_ENABLED=false to skip it — keyword search below still works with
+        # zero ML dependencies, so knowledge search degrades gracefully.
+        dense: list[Retrieved] = []
+        if settings.RAG_ENABLED:
+            qvec = _vec_literal(embeddings.embed_query(query))
+            cur.execute(
+                f"SELECT {cols} FROM argo.{table} WHERE embedding IS NOT NULL "
+                f"ORDER BY embedding <=> %s::vector LIMIT %s", (qvec, candidate_k))
+            dense = _rows_to_retrieved(cur, extra_cols)
 
         # keyword (full-text; on-the-fly tsvector is fine for a small table)
         cur.execute(
@@ -83,7 +87,7 @@ def _hybrid(query: str, *, table: str, text_col: str, extra_cols: tuple[str, ...
     if not fused:
         return []
 
-    if rerank and settings.RERANK_ENABLED:
+    if settings.RAG_ENABLED and rerank and settings.RERANK_ENABLED:
         try:
             scores = embeddings.rerank_scores(query, [r.content for r in fused])
             for r, s in zip(fused, scores):

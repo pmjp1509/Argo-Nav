@@ -30,6 +30,15 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"   # 384-dim; matches vector(384)
     RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"   # ~80MB CPU cross-encoder
     RERANK_ENABLED: bool = True
+    # Set RAG_ENABLED=false on tiny hosts (e.g. Render Free 512MB) to skip loading
+    # the PyTorch embedding/reranker models. Knowledge search falls back to
+    # keyword-only Postgres full-text search (no ML deps, no OOM).
+    RAG_ENABLED: bool = True
+
+    # ---- CORS ----
+    # Comma-separated list of allowed browser origins for production
+    # (e.g. "https://argo-nav.vercel.app"). localhost dev origins are always allowed.
+    FRONTEND_ORIGIN: str | None = None
 
     # ---- Parquet / DuckDB ----
     PARQUET_BACKEND: str = "supabase"        # local | supabase
@@ -37,6 +46,14 @@ class Settings(BaseSettings):
 
     def readonly_url(self) -> str:
         return self.DATABASE_URL_READONLY or self.DATABASE_URL
+
+    def cors_origins(self) -> list[str]:
+        defaults = [
+            "http://localhost:5173", "http://localhost:5174",
+            "http://127.0.0.1:5173", "http://127.0.0.1:5174",
+        ]
+        extra = [o.strip() for o in (self.FRONTEND_ORIGIN or "").split(",") if o.strip()]
+        return defaults + extra
 
     model_config = {
         "env_file": ".env",
