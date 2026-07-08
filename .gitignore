@@ -1,4 +1,5 @@
 NetCDF files/
+docs
 docs/
 evaluation/
 test/
@@ -50,7 +51,7 @@ uvicorn.log
 # =========================
 # Data / Scientific Files
 # =========================
-data/
+
 datasets/
 *.nc
 *.netcdf
@@ -106,7 +107,7 @@ htmlcov/
 # =========================
 # Model / AI Artifacts
 # =========================
-models/
+
 checkpoints/
 *.onnx
 *.pt
