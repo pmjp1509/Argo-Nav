@@ -3,6 +3,7 @@ fastapi
 uvicorn[standard]
 
 # ---- Database ----
+supabase
 psycopg2-binary
 pgvector                 # register_vector() for pgvector queries
 
