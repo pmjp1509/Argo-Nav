@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 
 import { AppShell } from '@/components/layout/AppShell';
 import { Logo } from '@/components/ui/Logo';
@@ -60,6 +61,7 @@ export default function App() {
           </Routes>
         </Suspense>
       </BrowserRouter>
+      <Analytics />
     </QueryProvider>
   );
 }
